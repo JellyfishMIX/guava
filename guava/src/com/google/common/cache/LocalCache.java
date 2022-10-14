@@ -240,6 +240,9 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
 
     /**
      * Creates a new, empty map with the specified strategy, initial capacity and concurrency level.
+     *
+     * LocalCache 的构造方法，传入一个 builder
+     * LocalCache 是 Product，CacheBuilder 是 builder。
      */
     LocalCache(
             CacheBuilder<? super K, ? super V> builder, @CheckForNull CacheLoader<? super K, V> loader) {
