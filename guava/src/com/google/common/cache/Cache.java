@@ -35,6 +35,8 @@ import javax.annotation.CheckForNull;
  * <p>Implementations of this interface are expected to be thread-safe, and can be safely accessed
  * by multiple concurrent threads.
  *
+ * guava 对 cache 基本能力的抽象
+ *
  * @param <K> the type of the cache's keys, which are not permitted to be null
  * @param <V> the type of the cache's values, which are not permitted to be null
  * @author Charles Fry
@@ -48,6 +50,9 @@ public interface Cache<K, V> {
   /**
    * Returns the value associated with {@code key} in this cache, or {@code null} if there is no
    * cached value for {@code key}.
+   *
+   * 如果 key 命中缓存，返回对应的 value
+   * 如果 key 未命中缓存，返回 null
    *
    * @since 11.0
    */
@@ -95,6 +100,11 @@ public interface Cache<K, V> {
    *
    * <p>No observable state associated with this cache is modified until loading completes.
    *
+   * 如果 key 命中缓存，则通过回调方法 loader 返回对应的 value，且在 loader 执行完成之前，该缓存的可见状态不会被修改。
+   * 当加载缓存的时候，如果遇到一个受检异常 checked exception，会抛出 ExecutionException
+   * 当加载缓存的时候，如果遇到一个非受检异常 unchecked exception，会抛出 UncheckedExecutionException
+   * 当加载缓存的时候，如果遇到一个错误，会抛出 ExecutionError
+   *
    * @throws ExecutionException if a checked exception was thrown while loading the value
    * @throws UncheckedExecutionException if an unchecked exception was thrown while loading the
    *     value
@@ -107,6 +117,9 @@ public interface Cache<K, V> {
   /**
    * Returns a map of the values associated with {@code keys} in this cache. The returned map will
    * only contain entries which are already present in the cache.
+   *
+   * 入参是多个 key，Iterable 类型
+   * 返回值是一个 ImmutableMap<K, V>，每个入参 key 及对应的 value
    *
    * @since 11.0
    */
@@ -123,6 +136,8 @@ public interface Cache<K, V> {
    * <p>Prefer {@link #get(Object, Callable)} when using the conventional "if cached, return;
    * otherwise create, cache and return" pattern.
    *
+   * 添加一个 key-value，如果 key 已存在，value 会覆盖
+   *
    * @since 11.0
    */
   void put(K key, V value);
@@ -133,25 +148,41 @@ public interface Cache<K, V> {
    * {@code k} to value {@code v} in the specified map. The behavior of this operation is undefined
    * if the specified map is modified while the operation is in progress.
    *
+   * 批量添加 key-value，如果 key 已存在，value 会覆盖
+   *
    * @since 12.0
    */
   void putAll(Map<? extends K, ? extends V> m);
 
-  /** Discards any cached value for key {@code key}. */
+  /**
+   * Discards any cached value for key {@code key}.
+   *
+   * 删除 key 对应的缓存
+   */
   void invalidate(@CompatibleWith("K") Object key);
 
   /**
    * Discards any cached values for keys {@code keys}.
+   *
+   * 批量删除 key 对应的缓存
    *
    * @since 11.0
    */
   // For discussion of <? extends Object>, see getAllPresent.
   void invalidateAll(Iterable<? extends Object> keys);
 
-  /** Discards all entries in the cache. */
+  /**
+   * Discards all entries in the cache.
+   *
+   * 删除 cache 中所有的缓存项
+   */
   void invalidateAll();
 
-  /** Returns the approximate number of entries in this cache. */
+  /**
+   * Returns the approximate number of entries in this cache.
+   *
+   * 返回 cache 中缓存项的数量
+   */
   long size();
 
   /**
@@ -164,6 +195,9 @@ public interface Cache<K, V> {
    * was called. If statistics are not being recorded, a {@code CacheStats} instance with zero for
    * all values is returned.
    *
+   * 返回此 cache 的累积统计信息的当前快照。
+   * 所有统计信息初始化时均为 0，在 cache 的整个生命周期内单调增加。
+   *
    */
   CacheStats stats();
 
@@ -174,12 +208,17 @@ public interface Cache<K, V> {
    * <p>Iterators from the returned map are at least <i>weakly consistent</i>: they are safe for
    * concurrent use, but if the cache is modified (including by eviction) after the iterator is
    * created, it is undefined which of the changes (if any) will be reflected in that iterator.
+   *
+   * 返回一个线程安全的 map，此 map 是 cache 的视图。对 map 的修改将直接影响 cache
+   *
    */
   ConcurrentMap<K, V> asMap();
 
   /**
    * Performs any pending maintenance operations needed by the cache. Exactly which activities are
    * performed -- if any -- is implementation-dependent.
+   *
+   * 执行 cache 所需要的任何待执行维护操作。究竟执行哪些动作与实现相关。
    */
   void cleanUp();
 }

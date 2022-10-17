@@ -95,6 +95,8 @@ import org.checkerframework.checker.nullness.qual.Nullable;
  * <p>This implementation is heavily derived from revision 1.96 of <a
  * href="http://tinyurl.com/ConcurrentHashMap">ConcurrentHashMap.java</a>.
  *
+ * builder 模式，内部使用的 Product 类
+ *
  * @author Charles Fry
  * @author Bob Lee ({@code com.google.common.collect.MapMaker})
  * @author Doug Lea ({@code ConcurrentHashMap})
@@ -1866,6 +1868,9 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
     /**
      * Segments are specialized versions of hash tables. This subclass inherits from ReentrantLock
      * opportunistically, just to simplify some locking and avoid separate construction.
+     *
+     * LocalCache 类似 jdk7 及以前的 ConcurrentHashMap，采用了分段策略，通过减小锁的粒度来提高并发。
+     * LocalCache 中数据存储在 Segment[] 中，每个 segment 包含 1 个 table 和 5 个队列。
      */
     @SuppressWarnings("serial") // This class is never serialized.
     static class Segment<K, V> extends ReentrantLock {
@@ -1926,7 +1931,11 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
          */
         int threshold;
 
-        /** The per-segment table. */
+        /**
+         * The per-segment table.
+         *
+         * 每个 segment 的 table
+         */
         @CheckForNull volatile AtomicReferenceArray<ReferenceEntry<K, V>> table;
 
         /** The maximum weight of this segment. UNSET_INT if there is no maximum. */
@@ -4899,6 +4908,13 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
         }
     }
 
+    /**
+     * LocalManualCache 实现了 Cache，具有 Cache 的能力，作为 Cache 的基础实现类。
+     * LocalManualCache 的子类可以继承后重写，实现定制化逻辑。如果不重写，也可以直接使用继承过来的能力，提高代码复用度。
+     *
+     * @param <K>
+     * @param <V>
+     */
     static class LocalManualCache<K, V> implements Cache<K, V>, Serializable {
         final LocalCache<K, V> localCache;
 
@@ -5000,6 +5016,14 @@ class LocalCache<K, V> extends AbstractMap<K, V> implements ConcurrentMap<K, V> 
         }
     }
 
+    /**
+     * builder 模式，对外暴露的 Product 类。
+     * LocalLoadingCache 继承了 LocalManualCache，因此获得了 Cache 的能力。
+     * LocalLoadingCache 可以选择地重写 LocalManualCache 中的方法，实现定制化逻辑。如果不重写，也可以直接使用继承过来的能力，提高代码复用度。
+     *
+     * @param <K>
+     * @param <V>
+     */
     static class LocalLoadingCache<K, V> extends LocalManualCache<K, V>
             implements LoadingCache<K, V> {
 

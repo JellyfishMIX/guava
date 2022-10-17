@@ -1010,6 +1010,10 @@ public final class CacheBuilder<K, V> {
      * <p>This method does not alter the state of this {@code CacheBuilder} instance, so it can be
      * invoked again to create multiple independent caches.
      *
+     * builder 的构建方法，通过此方法可以构建 Product: LocalCache, LocalLoadingCache。
+     * 调用 LocalCache.LocalLoadingCache 的构造方法，构造方法中会创建一个 LocalCache 对象。然后使用 LocalCache 对象，创建一个 LocalLoadingCache。
+     * 可以认为 build 出来的是对外暴露的 Product 类--LocalLoadingCache，LocalLoadingCache 使用了内部的 Product 类 LocalCache。
+     *
      * @param loader the cache loader used to obtain new values
      * @return a cache having the requested features
      */
