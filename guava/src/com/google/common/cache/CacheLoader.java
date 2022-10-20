@@ -83,6 +83,8 @@ public abstract class CacheLoader<K, V> {
    *
    * <p><b>Note:</b> <i>all exceptions thrown by this method will be logged and then swallowed</i>.
    *
+   * 默认的 CacheLoader#reload 方法，同步加载
+   *
    * @param key the non-null key whose value should be loaded
    * @param oldValue the non-null old value corresponding to {@code key}
    * @return the future new value associated with {@code key}; <b>must not be null, must not return
@@ -97,6 +99,7 @@ public abstract class CacheLoader<K, V> {
   public ListenableFuture<V> reload(K key, V oldValue) throws Exception {
     checkNotNull(key);
     checkNotNull(oldValue);
+    // 这里可以看到，在同步加载
     return Futures.immediateFuture(load(key));
   }
 
